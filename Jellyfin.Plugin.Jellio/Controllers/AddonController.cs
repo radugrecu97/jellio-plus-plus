@@ -173,8 +173,36 @@ public class AddonController : ControllerBase
                 return Enumerable.Empty<StreamDto>();
             }
 
-            return dto.MediaSources.Select(source =>
+            return dto.MediaSources.SelectMany(source =>
             {
+                var streams = new List<StreamDto>();
+
+                // 1. Direct Play Stream
+                var ext = string.IsNullOrEmpty(source.Container) ? "mp4" : source.Container.Split(',')[0];
+                var dpQuery = QueryString.Create(new Dictionary<string, string?>
+                {
+                    ["static"] = "true",
+                    ["mediaSourceId"] = source.Id,
+                    ["api_key"] = authToken,
+                });
+                var dpStreamUrl = $"{baseUrl}/Videos/{dto.Id}/stream.{ext}{dpQuery}";
+                LogBuffer.AddLog($"[Stream] Generated Direct Play stream for {dto.Name} ({dto.Id}): {source.Name} - URL: {dpStreamUrl}", LogLevel.Info);
+                
+                streams.Add(new StreamDto
+                {
+                    Url = dpStreamUrl,
+                    Name = "Jellio++",
+                    Description = $"Direct Play - {source.Name}",
+                    BehaviorHints = new BehaviorHintsDto
+                    {
+                        Filename = string.IsNullOrEmpty(source.Path) ? null : Path.GetFileName(source.Path),
+                        VideoSize = source.Size,
+                        VideoHash = OpenSubtitlesHash.ComputeFromPath(source.Path),
+                        NotWebReady = true,
+                    },
+                });
+
+                // 2. HLS Stream
                 /*
                  * Jellyfin's HLS endpoint requires the caller to declare which codecs the player supports.
                  * It compares these against the media file's codecs to decide whether to pass through without re-encoding or transcode.
@@ -195,12 +223,13 @@ public class AddonController : ControllerBase
                     ["audioCodec"] = string.Join(',', audioCodecs),
                 });
                 var streamUrl = $"{baseUrl}/Videos/{dto.Id}/master.m3u8{query}";
-                LogBuffer.AddLog($"[Stream] Generated stream for {dto.Name} ({dto.Id}): {source.Name} - URL: {streamUrl}", LogLevel.Info);
-                return new StreamDto
+                LogBuffer.AddLog($"[Stream] Generated HLS stream for {dto.Name} ({dto.Id}): {source.Name} - URL: {streamUrl}", LogLevel.Info);
+                
+                streams.Add(new StreamDto
                 {
                     Url = streamUrl,
                     Name = "Jellio++",
-                    Description = source.Name,
+                    Description = $"HLS - {source.Name}",
                     BehaviorHints = new BehaviorHintsDto
                     {
                         Filename = string.IsNullOrEmpty(source.Path) ? null : Path.GetFileName(source.Path),
@@ -208,7 +237,9 @@ public class AddonController : ControllerBase
                         VideoHash = OpenSubtitlesHash.ComputeFromPath(source.Path),
                         NotWebReady = true,
                     },
-                };
+                });
+
+                return streams;
             });
         }).ToList();
 
