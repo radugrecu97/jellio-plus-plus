@@ -175,7 +175,24 @@ public class AddonController : ControllerBase
 
             return dto.MediaSources.Select(source =>
             {
-                var ext = string.IsNullOrEmpty(source.Container) ? "mp4" : source.Container.Split(',')[0];
+                var ext = "mp4";
+                if (!string.IsNullOrWhiteSpace(source.Path))
+                {
+                    var pathExt = Path.GetExtension(source.Path);
+                    if (!string.IsNullOrWhiteSpace(pathExt))
+                    {
+                        ext = pathExt.TrimStart('.').ToLowerInvariant();
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(source.Container))
+                {
+                    ext = source.Container.Split(',')[0].Trim().ToLowerInvariant();
+                    if (ext == "matroska")
+                    {
+                        ext = "mkv";
+                    }
+                }
+
                 var query = QueryString.Create(new Dictionary<string, string?>
                 {
                     ["static"] = "true",
