@@ -1,5 +1,5 @@
 # Jellio++
-[![Release](https://img.shields.io/github/v/release/wujekbogdan/jellio-plus-plus)](https://github.com/wujekbogdan/jellio-plus-plus/releases)
+[![Release](https://img.shields.io/github/v/release/radugrecu97/jellio-plus-plus)](https://github.com/radugrecu97/jellio-plus-plus/releases)
 
 Stream your Jellyfin library directly in Stremio with seamless integration.
 
@@ -7,7 +7,7 @@ Stream your Jellyfin library directly in Stremio with seamless integration.
 
 - [**Jellio**](https://github.com/vanchaxy/jellio) by [Vanchaxy](https://github.com/vanchaxy) - the original Jellyfin↔Stremio bridge.
 - [**Jellio+**](https://github.com/InfiniteAvenger/jellio-plus) by [InfiniteAvenger](https://github.com/InfiniteAvenger) - fork adding Jellyfin 10.11.x support.
-- **Jellio++** - this fork. Adds HLS streaming with proper seeking, OpenSubtitles hashes for subtitle matching, public base URL support, and a few other fixes upstream hasn't taken yet.
+- **Jellio++** - this fork. Removed HLS streaming in favor of pure **Direct Play**, preserving embedded subtitles and full audio track selection, alongside OpenSubtitles hashes for subtitle matching, public base URL support, and other fixes.
 
 Every fork gets another `+`. We don't make the rules.
 
@@ -37,7 +37,7 @@ Enable the optional Jellyseerr functionality to be able to directly request medi
 NOTICE: Your Jellyfin instance needs to be reachable over HTTPS because Stremio requires HTTPS for addon URLs. You need an HTTPS tunnel such as Cloudflare Tunnel, Tailscale Funnel, ngrok, etc.
 
 1. Open Jellyfin Dashboard > Plugins > Manage Repositories
-2. Click "New Repository" and add "Jellio++" for the name, and "https://raw.githubusercontent.com/wujekbogdan/jellio-plus-plus/metadata/jellyfin-repo-manifest.json" for the repository url
+2. Click "New Repository" and add "Jellio++" for the name, and "https://raw.githubusercontent.com/radugrecu97/jellio-plus-plus/metadata/jellyfin-repo-manifest.json" for the repository url
 3. Go back to Plugins, and under "All" find and install Jellio++
 4. Restart Jellyfin
 5. Jellyfin Dashboard > Plugins > Installed > Jellio++ and then click "Settings"
