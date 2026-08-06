@@ -182,8 +182,9 @@ public class AddonController : ControllerBase
                     ["mediaSourceId"] = source.Id,
                     ["api_key"] = authToken,
                 });
-                var streamUrl = $"{baseUrl}/Videos/{dto.Id}/stream.{ext}{query}";
-                LogBuffer.AddLog($"[Stream] Generated Direct Play stream for {dto.Name} ({dto.Id}): {source.Name} - URL: {streamUrl}", LogLevel.Info);
+var streamUrl = $"{baseUrl}/Videos/{dto.Id}/stream.{ext}{query}";
+var logStreamUrl = $"{baseUrl}/Videos/{dto.Id}/stream.{ext}?static=true&mediaSourceId={source.Id}&api_key=***";
+LogBuffer.AddLog($"[Stream] Generated Direct Play stream for {dto.Name} ({dto.Id}): {source.Name} - URL: {logStreamUrl}", LogLevel.Info);
                 
                 return new StreamDto
                 {
