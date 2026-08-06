@@ -173,24 +173,21 @@ public class AddonController : ControllerBase
                 return Enumerable.Empty<StreamDto>();
             }
 
-            return dto.MediaSources.SelectMany(source =>
+            return dto.MediaSources.Select(source =>
             {
-                var streams = new List<StreamDto>();
-
-                // 1. Direct Play Stream
                 var ext = string.IsNullOrEmpty(source.Container) ? "mp4" : source.Container.Split(',')[0];
-                var dpQuery = QueryString.Create(new Dictionary<string, string?>
+                var query = QueryString.Create(new Dictionary<string, string?>
                 {
                     ["static"] = "true",
                     ["mediaSourceId"] = source.Id,
                     ["api_key"] = authToken,
                 });
-                var dpStreamUrl = $"{baseUrl}/Videos/{dto.Id}/stream.{ext}{dpQuery}";
-                LogBuffer.AddLog($"[Stream] Generated Direct Play stream for {dto.Name} ({dto.Id}): {source.Name} - URL: {dpStreamUrl}", LogLevel.Info);
+                var streamUrl = $"{baseUrl}/Videos/{dto.Id}/stream.{ext}{query}";
+                LogBuffer.AddLog($"[Stream] Generated Direct Play stream for {dto.Name} ({dto.Id}): {source.Name} - URL: {streamUrl}", LogLevel.Info);
                 
-                streams.Add(new StreamDto
+                return new StreamDto
                 {
-                    Url = dpStreamUrl,
+                    Url = streamUrl,
                     Name = "Jellio++",
                     Description = $"Direct Play - {source.Name}",
                     BehaviorHints = new BehaviorHintsDto
@@ -200,46 +197,7 @@ public class AddonController : ControllerBase
                         VideoHash = OpenSubtitlesHash.ComputeFromPath(source.Path),
                         NotWebReady = true,
                     },
-                });
-
-                // 2. HLS Stream
-                /*
-                 * Jellyfin's HLS endpoint requires the caller to declare which codecs the player supports.
-                 * It compares these against the media file's codecs to decide whether to pass through without re-encoding or transcode.
-                 *
-                 * Stremio's addon protocol has no mechanism for the client to advertise its codec capabilities to addons, so we hardcode them here. The lists below reflect what Stremio's players can decode. This is the same pattern every Jellyfin client follows - e.g. jellyfin-web builds its codec list.
-                 * See: https://github.com/jellyfin/jellyfin-web/blob/285196329/src/scripts/browserDeviceProfile.js#L914-L925
-                 *
-                 * Without these params Jellyfin would fall back to "m3u8" as the audio codec name, producing invalid FFmpeg commands.
-                 * See: https://github.com/jellyfin/jellyfin/issues/12926
-                 */
-                string[] videoCodecs = ["h264", "hevc", "av1"];
-                string[] audioCodecs = ["aac", "mp3", "ac3", "eac3", "flac", "opus"];
-                var query = QueryString.Create(new Dictionary<string, string?>
-                {
-                    ["mediaSourceId"] = source.Id,
-                    ["api_key"] = authToken,
-                    ["videoCodec"] = string.Join(',', videoCodecs),
-                    ["audioCodec"] = string.Join(',', audioCodecs),
-                });
-                var streamUrl = $"{baseUrl}/Videos/{dto.Id}/master.m3u8{query}";
-                LogBuffer.AddLog($"[Stream] Generated HLS stream for {dto.Name} ({dto.Id}): {source.Name} - URL: {streamUrl}", LogLevel.Info);
-                
-                streams.Add(new StreamDto
-                {
-                    Url = streamUrl,
-                    Name = "Jellio++",
-                    Description = $"HLS - {source.Name}",
-                    BehaviorHints = new BehaviorHintsDto
-                    {
-                        Filename = string.IsNullOrEmpty(source.Path) ? null : Path.GetFileName(source.Path),
-                        VideoSize = source.Size,
-                        VideoHash = OpenSubtitlesHash.ComputeFromPath(source.Path),
-                        NotWebReady = true,
-                    },
-                });
-
-                return streams;
+                };
             });
         }).ToList();
 
